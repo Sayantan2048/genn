@@ -1,20 +1,20 @@
 /*--------------------------------------------------------------------------
    Author: Thomas Nowotny
-  
+
    Institute: Informatics
-              University of Sussex 
+              University of Sussex
               Brighton BN1 9QJ, UK
-  
+
    email to:  t.nowotny@sussex.ac.uk
-  
+
    initial version: 2014-06-26
-  
+
 --------------------------------------------------------------------------*/
 
 //--------------------------------------------------------------------------
 /*! \file VClampGA.cu
 
-\brief Main entry point for the GeNN project demonstrating realtime fitting of a neuron with a GA running mostly on the GPU. 
+\brief Main entry point for the GeNN project demonstrating realtime fitting of a neuron with a GA running mostly on the GPU.
 */
 //--------------------------------------------------------------------------
 
@@ -27,23 +27,23 @@
 
 int main(int argc, char *argv[])
 {
-  if (argc != 4)
+  if (argc != 5)
   {
-    fprintf(stderr, "usage: VClampGA <basename> <CPU=0, GPU=1> <protocol> \n");
+    fprintf(stderr, "usage: VClampGA <basename> <CPU=0, GPU=1> <protocol> <model root dir>\n");
     return 1;
   }
   int which= atoi(argv[2]);
-  int protocol= atoi(argv[3]);	
-  string OutDir = toString(argv[1]) +"_output";
+  int protocol= atoi(argv[3]);
+  string OutDir = toString(argv[4]) + "/" + toString(argv[1]) +"_output";
   string name;
   name= OutDir+ "/"+ toString(argv[1]) + toString(".time");
-  FILE *timef= fopen(name.c_str(),"a");  
+  FILE *timef= fopen(name.c_str(),"a");
 
   write_para();
-  
-  name= OutDir+ "/"+ toString(argv[1]) + toString(".out.I"); 
+
+  name= OutDir+ "/"+ toString(argv[1]) + toString(".out.I");
   FILE *osf= fopen(name.c_str(),"w");
-  name= OutDir+ "/"+ toString(argv[1]) + toString(".out.best"); 
+  name= OutDir+ "/"+ toString(argv[1]) + toString(".out.best");
   FILE *osb= fopen(name.c_str(),"w");
 
   //-----------------------------------------------------------------
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
   var_init_fullrange(); // initialize uniformly on large range
   initexpHH();
   fprintf(stderr, "# neuronal circuitery built, start computation ... \n\n");
-  
+
   double *theExp_p[7];
   theExp_p[0]= &gNaexp;
   theExp_p[1]= &ENaexp;
@@ -81,14 +81,14 @@ int main(int argc, char *argv[])
 
   timer.startTimer();
   t= 0.0;
-  while (!done) 
+  while (!done)
   {
     truevar_init();
     truevar_initexpHH();
-    sn= 0;	
+    sn= 0;
     for (int i= 0; i < iTN; i++) {
       oldt= t;
-      runexpHH(t); 
+      runexpHH(t);
       if (which == GPU) {
 #ifndef CPU_ONLY
 	stepTimeGPU();
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 #ifndef CPU_ONLY
     if (which == GPU) {
        CHECK_CUDA_ERRORS(cudaMemcpy(errHH, d_errHH, VSize, cudaMemcpyDeviceToHost));
-    }   
+    }
 #endif
     fprintf(osb, "%f %f %f %f %f %f %f %f ", t, gNaexp, ENaexp, gKexp, EKexp, glexp, Elexp, Cexp);
     procreatePop(osb);
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
       if (protocol < 7) {
         if (protocol%2 == 0) {
           *(theExp_p[protocol])=  myHH_ini[protocol+4]*(1+0.5*sin(3.1415927*t/40000));
-        } else {       
+        } else {
           *(theExp_p[protocol])=  myHH_ini[protocol+4]+40.0*(sin(3.1415927*t/40000));
         }
       }
@@ -131,13 +131,13 @@ int main(int argc, char *argv[])
           }
         }
       }
-    }   
+    }
     cerr << "% " << t << endl;
     done= (t >= TOTALT);
   }
   timer.stopTimer();
-  fprintf(timef,"%f \n",timer.getElapsedTime());  
-  // close files 
+  fprintf(timef,"%f \n",timer.getElapsedTime());
+  // close files
   fclose(osf);
   fclose(timef);
   fclose(osb);

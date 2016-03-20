@@ -1,16 +1,17 @@
 #--------------------------------------------------------------------------
 #   Author: Thomas Nowotny
-#  
+#
 #   Institute: Informatics
-#              University of Sussex 
+#              University of Sussex
 #              Brighton BN1 9QJ, UK
-#  
+#
 #   email to:  t.nowotny@sussex.ac.uk
-#  
+#
 #   initial version: 2014-06-26
-#  
+#
 #--------------------------------------------------------------------------
 
+GENN_PATH	?=$(realpath $(dir $(realpath GNUmakefile))../..)
 CXXFLAGS	= -Wall -Winline -O3
 INCLUDE_FLAGS 	:=-I$(GENN_PATH)/lib/include -I$(GENN_PATH)/userproject/include
 

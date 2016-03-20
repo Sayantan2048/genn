@@ -1,14 +1,14 @@
 /*--------------------------------------------------------------------------
   Author: Thomas Nowotny
-  
+
   Institute: Center for Computational Neuroscience and Robotics
              University of Sussex
-             Falmer, Brighton BN1 9QJ, UK 
-  
+             Falmer, Brighton BN1 9QJ, UK
+
   email to:  T.Nowotny@sussex.ac.uk
-  
+
   initial version: 2010-02-07
-  
+
   --------------------------------------------------------------------------*/
 
 //--------------------------------------------------------------------------
@@ -17,7 +17,7 @@
 \brief This file is used to run the HHVclampGA model with a single command line.
 
 
-*/ 
+*/
 //--------------------------------------------------------------------------
 
 #include <iostream>
@@ -28,6 +28,7 @@
 #include <cmath>
 #include <cfloat>
 #include <locale>
+#include <stdexcept>
 using namespace std;
 
 #ifdef _WIN32
@@ -58,18 +59,24 @@ CPU_ONLY=0 or CPU_ONLY=1 (default 0): Whether to compile in (CUDA independent) \
   }
   int retval;
   string cmd;
-  string gennPath = getenv("GENN_PATH");
+#include "set_path.h"
+
   int which = atoi(argv[1]);
   int protocol = atoi(argv[2]);
   int nPop = atoi(argv[3]);
   double totalT = atof(argv[4]);
-  string outDir = toString(argv[5]) + "_output";  
+
+   string outDir =
+#ifndef _WIN32
+    modelRoot + "/" +
+#endif
+    toString(argv[5]) + "_output";
 
    int argStart= 6;
 #include "parse_options.h"  // parse options
 
   // write model parameters
-  string fname = "model/HHVClampParameters.h";
+  string fname = modelRoot + "/model/HHVClampParameters.h";
   ofstream os(fname.c_str());
   os << "#define NPOP " << nPop << endl;
   os << "#define TOTALT " << totalT << endl;
@@ -83,12 +90,12 @@ CPU_ONLY=0 or CPU_ONLY=1 (default 0): Whether to compile in (CUDA independent) \
   else {
       os << "#define SCALAR_MIN " << FLT_MIN << "f" << endl;
       os << "#define SCALAR_MAX " << FLT_MAX << "f" << endl;
-  } 
+  }
   if (which > 1) {
       os << "#define fixGPU " << which-2 << endl;
   }
   os.close();
-  
+
   // build it
 #ifdef _WIN32
   cmd= "cd model && buildmodel.bat HHVClamp DEBUG=" + toString(dbgMode);
@@ -104,7 +111,7 @@ CPU_ONLY=0 or CPU_ONLY=1 (default 0): Whether to compile in (CUDA independent) \
   }
 
 #else // UNIX
-  cmd = "cd model && buildmodel.sh HHVClamp DEBUG=" + toString(dbgMode);
+  cmd = "cd " + modelRoot + "/model && " + gennPath + "/lib/bin/buildmodel.sh HHVClamp DEBUG=" + toString(dbgMode);
   if (cpu_only) {
       cmd += " CPU_ONLY=1";
   }
@@ -150,10 +157,10 @@ CPU_ONLY=0 or CPU_ONLY=1 (default 0): Whether to compile in (CUDA independent) \
   }
 #else // UNIX
   if (dbgMode == 1) {
-    cmd = "cuda-gdb -tui --args model/VClampGA " + cmd;
+    cmd = "cuda-gdb -tui --args "  + modelRoot + "/model/VClampGA " + cmd + " " + modelRoot;
   }
   else {
-    cmd = "model/VClampGA " + cmd;
+    cmd =  modelRoot + "/model/VClampGA " + cmd + " " + modelRoot;
   }
 #endif
   retval=system(cmd.c_str());

@@ -74,12 +74,12 @@ all: release
 %.o: %.cu
 	$(NVCC) $(NVCCFLAGS) $(INCLUDE_FLAGS) $(GENCODE_FLAGS) $< -o $@ -c
 
-classol_sim_cpu_only.o: classol_sim_cpu_only.cc
+$(EXECUTABLE)_cpu_only.o: $(EXECUTABLE)_cpu_only.cc
 	$(CXX) $(CXXFLAGS) $(INCLUDE_FLAGS) $< -o $@ -c
-	mv classol_sim_cpu_only.cc classol_sim.cu
+	mv $(EXECUTABLE)_cpu_only.cc $(EXECUTABLE).cu
 
-classol_sim_cpu_only.cc: classol_sim.cu
-	mv classol_sim.cu classol_sim_cpu_only.cc
+$(EXECUTABLE)_cpu_only.cc: $(EXECUTABLE).cu
+	mv $(EXECUTABLE).cu $(EXECUTABLE)_cpu_only.cc
 
 $(EXECUTABLE): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(OBJECTS) -o $@ $(LINK_FLAGS)

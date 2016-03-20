@@ -13,9 +13,9 @@
 
 EXECUTABLE	:=classol_sim
 ifeq ($(CPU_ONLY),1)
-  SOURCES :=classol_sim_cpu_only.cc
+  SOURCES :=$(EXECUTABLE)_cpu_only.cc
 else
-  SOURCES :=classol_sim.cu
+  SOURCES :=$(EXECUTABLE).cu
 endif
 
 OPTIMIZATIONFLAGS:= -O3 -ffast-math
